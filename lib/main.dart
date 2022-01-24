@@ -320,7 +320,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                         image: AssetImage(
                                             'assets/images/flutter logo.png'))),
                               ),
-                              Text('#Nokia3310')
+                              Text('#Nokia3310'),
                             ],
                           ),
                   ),
