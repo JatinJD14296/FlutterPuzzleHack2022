@@ -37,12 +37,12 @@ class GameModel extends ChangeNotifier {
     var nextX = min + rng.nextInt(max - min);
     var nextY = min + rng.nextInt(max - min);
 
-    var Apple = Point(nextX.toDouble(), nextY.toDouble());
+    var apple = Point(nextX.toDouble(), nextY.toDouble());
 
-    if (snakePiecePositions.contains(Apple)) {
+    if (snakePiecePositions.contains(apple)) {
       _generateApple();
     } else {
-      applePosition = Apple;
+      applePosition = apple;
     }
     notifyListeners();
   }
@@ -125,31 +125,31 @@ class GameModel extends ChangeNotifier {
   }
 
   Point _getHeadPosition() {
-    var HeadPos;
+    var headPos;
 
     switch (_direction) {
       case Direction.LEFT:
         var currentHeadPos = snakePiecePositions.first;
-        HeadPos = Point(currentHeadPos.x - 1, currentHeadPos.y);
+        headPos = Point(currentHeadPos.x - 1, currentHeadPos.y);
         break;
 
       case Direction.RIGHT:
         var currentHeadPos = snakePiecePositions.first;
-        HeadPos = Point(currentHeadPos.x + 1, currentHeadPos.y);
+        headPos = Point(currentHeadPos.x + 1, currentHeadPos.y);
         break;
 
       case Direction.UP:
         var currentHeadPos = snakePiecePositions.first;
-        HeadPos = Point(currentHeadPos.x, currentHeadPos.y - 1);
+        headPos = Point(currentHeadPos.x, currentHeadPos.y - 1);
         break;
 
       case Direction.DOWN:
         var currentHeadPos = snakePiecePositions.first;
-        HeadPos = Point(currentHeadPos.x, currentHeadPos.y + 1);
+        headPos = Point(currentHeadPos.x, currentHeadPos.y + 1);
         break;
     }
 
-    return HeadPos;
+    return headPos;
   }
 
   void handleTap(TapUpDetails tapUpDetails) {
@@ -238,7 +238,7 @@ class GameModel extends ChangeNotifier {
         break;
 
       case GameState.RUNNING:
-        List<Positioned> snakePiecesAndApple = List();
+        List<Positioned> snakePiecesAndApple = [];
         snakePiecePositions.forEach((i) {
           snakePiecesAndApple.add(Positioned(
             child: SnakePiece(),

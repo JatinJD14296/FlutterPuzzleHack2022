@@ -66,7 +66,7 @@ class DialerButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: FlatButton(
+      child: TextButton(
         child: Text(''),
         onPressed: () {
           Provider.of<DialerModel>(context, listen: false).append(number);

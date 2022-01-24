@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:nokiapro/dialer.dart';
@@ -51,7 +51,6 @@ class _MyHomePageState extends State<MyHomePage> {
   int menuIdx = 0;
   bool menuTapped = false;
   AppState appState = AppState.HOME;
-  Board _board = Board();
   String _time;
 
   @override
@@ -81,150 +80,172 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  double dx = 0;
+  double dy = 0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Stack(
-        alignment: Alignment.center,
-        children: <Widget>[
-          Positioned(
-            top: 140,
-            left: 60,
-            right: 60,
-            child: Container(
-              height: MediaQuery.of(context).size.height / 3,
-              width: MediaQuery.of(context).size.width / 4,
-              padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 30.0),
-              color: AppColors.greenScreenColor,
-              child: (appState == AppState.HOME)
-                  ? buildHome()
-                  : ((appState == AppState.MENU) ? menu() : Board()),
-            ),
-          ),
-          Container(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
-            margin: const EdgeInsets.only(top: 10.0),
-            decoration: BoxDecoration(
-                image: DecorationImage(
-                    image: AssetImage('assets/images/nokiacutscreenv2.png'),
-                    fit: BoxFit.contain)),
-          ),
-          Dialer(),
-          // Menu Button
-          Positioned(
-            top: MediaQuery.of(context).size.height / 1.9,
-            left: 150,
-            right: 150,
-            child: FlatButton(
-              padding: EdgeInsets.only(left: 20, right: 20),
-              child: Text(''),
-              onPressed: () {
-                setState(() {
-                  if (appState == AppState.HOME) {
-                    if (Provider.of<DialerModel>(context, listen: false)
-                            .number
-                            .length >
-                        0) {
-                      _makePhoneCall(
-                          Provider.of<DialerModel>(context, listen: false)
-                              .number);
+      body: GestureDetector(
+        onPanUpdate: (details) {
+          setState(() {
+            dx += details.delta.dx/4;
+            dy += details.delta.dy/4;
+          });
+        },
+        child: Transform(
+          origin: Offset(100, 100),
+          transform: Matrix4.identity()
+            ..setEntry(3, 2, 0.001)
+            ..rotateX(0.01 * dy)
+            ..rotateY(-0.01 * dx),
+          alignment: Alignment.center,
+          child: Stack(
+            alignment: Alignment.center,
+            children: <Widget>[
+              Positioned(
+                top: 165,
+                left: 60,
+                right: 60,
+                child: Container(
+                  height: MediaQuery.of(context).size.height / 3,
+                  width: MediaQuery.of(context).size.width / 4,
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 20.0, vertical: 30.0),
+                  color: AppColors.greenScreenColor,
+                  child: (appState == AppState.HOME)
+                      ? buildHome()
+                      : ((appState == AppState.MENU) ? menu() : Board()),
+                ),
+              ),
+              Container(
+                height: MediaQuery.of(context).size.height,
+                width: MediaQuery.of(context).size.width,
+                margin: const EdgeInsets.only(top: 10.0),
+                decoration: BoxDecoration(
+                    image: DecorationImage(
+                        image: AssetImage('assets/images/nokiacutscreenv2.png'),
+                        fit: BoxFit.contain)),
+              ),
+              Dialer(),
+              // Menu Button
+              Positioned(
+                top: MediaQuery.of(context).size.height / 1.9,
+                left: 150,
+                right: 150,
+                child: Padding(
+                  padding: EdgeInsets.only(left: 20, right: 20),
+                  child: TextButton(
+                    child: Text(''),
+                    onPressed: () {
+                      setState(() {
+                        if (appState == AppState.HOME) {
+                          if (Provider.of<DialerModel>(context, listen: false)
+                                  .number
+                                  .length >
+                              0) {
+                            _makePhoneCall(
+                                Provider.of<DialerModel>(context, listen: false)
+                                    .number);
+                          } else {
+                            appState = AppState.MENU;
+                            menuTapped = true;
+                          }
+                        } else if (appState == AppState.MENU)
+                          appState = AppState.GAME;
+                        else if (appState == AppState.GAME) {
+                          Provider.of<GameModel>(context, listen: false)
+                              .moveFromSplashToRunningState();
+                        }
+                      });
+                    },
+                  ),
+                ),
+              ),
+              // C Button
+              Positioned(
+                top: MediaQuery.of(context).size.height / 1.8,
+                left: 100,
+                right: 250,
+                child: TextButton(
+                  onPressed: () {
+                    if (appState == AppState.MENU) {
+                      setState(() {
+                        menuTapped = false;
+                        appState = AppState.HOME;
+                      });
+                    } else if (appState == AppState.GAME) {
+                      setState(() {
+                        appState = AppState.MENU;
+                      });
                     } else {
-                      appState = AppState.MENU;
-                      menuTapped = true;
+                      Provider.of<DialerModel>(context, listen: false).delete();
                     }
-                  } else if (appState == AppState.MENU)
-                    appState = AppState.GAME;
-                  else if (appState == AppState.GAME) {
-                    Provider.of<GameModel>(context, listen: false)
-                        .moveFromSplashToRunningState();
-                  }
-                });
-              },
-            ),
+                  },
+                  onLongPress: () {
+                    if (menuTapped) {
+                      setState(() {
+                        menuTapped = !menuTapped;
+                      });
+                    } else {
+                      Provider.of<DialerModel>(context, listen: false).clear();
+                    }
+                  },
+                  child: Text(""),
+                ),
+              ),
+              // Forward Button
+              Positioned(
+                top: MediaQuery.of(context).size.height / 1.8,
+                left: 270,
+                right: 80,
+                child: TextButton(
+                  onPressed: () {
+                    if (appState == AppState.GAME) {
+                      Provider.of<GameModel>(context, listen: false)
+                          .changeDirection(Direction.UP);
+                    } else {
+                      if (menuIdx == MenuItem.menuItems.length - 1) {
+                        setState(() {
+                          menuIdx = 0;
+                        });
+                      } else
+                        setState(() {
+                          menuIdx++;
+                        });
+                    }
+                  },
+                  child: Text(""),
+                ),
+              ),
+              // Backward Button
+              Positioned(
+                top: MediaQuery.of(context).size.height / 1.7,
+                left: 230,
+                right: 130,
+                child: TextButton(
+                  onPressed: () {
+                    if (appState == AppState.GAME) {
+                      Provider.of<GameModel>(context, listen: false)
+                          .changeDirection(Direction.DOWN);
+                    } else {
+                      if (menuIdx == 0) {
+                        setState(() {
+                          menuIdx = MenuItem.menuItems.length - 1;
+                        });
+                      } else
+                        setState(() {
+                          menuIdx--;
+                        });
+                    }
+                  },
+                  child: Text(""),
+                ),
+              ),
+            ],
           ),
-          // C Button
-          Positioned(
-            top: MediaQuery.of(context).size.height / 1.8,
-            left: 100,
-            right: 250,
-            child: FlatButton(
-              onPressed: () {
-                if (appState == AppState.MENU) {
-                  setState(() {
-                    menuTapped = false;
-                    appState = AppState.HOME;
-                  });
-                } else if (appState == AppState.GAME) {
-                  setState(() {
-                    appState = AppState.MENU;
-                  });
-                } else {
-                  Provider.of<DialerModel>(context, listen: false).delete();
-                }
-              },
-              onLongPress: () {
-                if (menuTapped) {
-                  setState(() {
-                    menuTapped = !menuTapped;
-                  });
-                } else {
-                  Provider.of<DialerModel>(context, listen: false).clear();
-                }
-              },
-              child: Text(""),
-            ),
-          ),
-          // Forward Button
-          Positioned(
-            top: MediaQuery.of(context).size.height / 1.8,
-            left: 270,
-            right: 80,
-            child: FlatButton(
-              onPressed: () {
-                if (appState == AppState.GAME) {
-                  Provider.of<GameModel>(context, listen: false)
-                      .changeDirection(Direction.UP);
-                } else {
-                  if (menuIdx == MenuItem.menuItems.length - 1) {
-                    setState(() {
-                      menuIdx = 0;
-                    });
-                  } else
-                    setState(() {
-                      menuIdx++;
-                    });
-                }
-              },
-              child: Text(""),
-            ),
-          ),
-          // Backward Button
-          Positioned(
-            top: MediaQuery.of(context).size.height / 1.7,
-            left: 230,
-            right: 130,
-            child: FlatButton(
-              onPressed: () {
-                if (appState == AppState.GAME) {
-                  Provider.of<GameModel>(context, listen: false)
-                      .changeDirection(Direction.DOWN);
-                } else {
-                  if (menuIdx == 0) {
-                    setState(() {
-                      menuIdx = MenuItem.menuItems.length - 1;
-                    });
-                  } else
-                    setState(() {
-                      menuIdx--;
-                    });
-                }
-              },
-              child: Text(""),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -274,7 +295,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Text(_time),
               ),
               Positioned(
-                top: 40,
+                top: 50,
                 child: Container(
                   height: 110,
                   width: 150,
@@ -299,21 +320,18 @@ class _MyHomePageState extends State<MyHomePage> {
                                         image: AssetImage(
                                             'assets/images/flutter logo.png'))),
                               ),
-                              Text('Flutter #Hack20')
+                              Text('#Nokia3310')
                             ],
                           ),
                   ),
                 ),
               ),
-              Container(
-                  height: 30,
-                  child: FlatButton(
-                    onPressed: () {},
-                    child: Text(
-                        Provider.of<DialerModel>(context).number.length > 0
-                            ? 'Call'
-                            : 'Menu'),
-                  ))
+              TextButton(
+                onPressed: () {},
+                child: Text(Provider.of<DialerModel>(context).number.length > 0
+                    ? 'Call'
+                    : 'Menu'),
+              )
             ],
           ),
         ),
